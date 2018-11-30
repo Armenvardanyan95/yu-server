@@ -1,5 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards, UsePipes, UseInterceptors, FileInterceptor, UploadedFile } from '@nestjs/common';
+import {
+    Body, Controller, Delete, Get, Param, Post, UseGuards, UsePipes, UseInterceptors, FileInterceptor,
+    UploadedFile, Res,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
 import { OrderService } from './order.service';
 import { User } from '../entities/user.entity';
@@ -7,8 +11,12 @@ import { IOrder } from '../infrastructure/interfaces';
 import { Schema, Validations } from '../infrastructure/schemas';
 import { CurrentUser } from '../infrastructure/decorators';
 import { ValidationPipe } from '../infrastructure/pipes';
-import { AdminGuard } from '../infrastructure/guards';
 import { ErrorResponse, SuccessResponse } from '../infrastructure/responses';
+import { Order, OrderStatus } from '../entities/order.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationModel } from '../notifications/notification.model';
+import { Notification, NotificationType } from '../entities/notification.entity';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 
 @Controller('order')
 export class OrderController {
@@ -18,11 +26,15 @@ export class OrderController {
         ['description', [Validations.Required]],
     ]);
 
-    constructor(private readonly orderService: OrderService) {}
+    constructor(
+        private readonly orderService: OrderService,
+        private readonly notificationsService: NotificationsService,
+        private readonly notificationsGateway: NotificationsGateway,
+    ) {}
 
     @Post()
     @UsePipes(new ValidationPipe(OrderController.orderCreateSchema, [User]))
-    @UseGuards(AuthGuard(), AdminGuard)
+    @UseGuards(AuthGuard())
     @UseInterceptors(FileInterceptor('file'))
     async createOrder(@Body() orderData: IOrder, @CurrentUser() user: User, @UploadedFile() file) {
         try {
@@ -55,6 +67,26 @@ export class OrderController {
         try {
             const orders = await this.orderService.findOrdersByUserID(user.id);
             return new SuccessResponse(orders);
+        } catch (error) {
+            return new ErrorResponse(error.message);
+        }
+    }
+
+    @Get('uploaded-doc/:docName')
+    async getAttachment(@Param('docName') docName, @Res() res) {
+        res.sendFile(docName, {root: 'public'});
+    }
+
+    @Post('change-status')
+    @UseGuards(AuthGuard())
+    async changeOrderStatus(@Body() {id, status}: {id: number, status: OrderStatus}) {
+        try {
+            const order: Order = await this.orderService.changeStatus(id, status);
+            const notification = await this.notificationsService.create(
+                NotificationModel.fromType(this.notificationsService.mapOrderStatusToNotificationType(status), order),
+            );
+            this.notificationsGateway.addNotification(order.owner.id, notification);
+            return new SuccessResponse();
         } catch (error) {
             return new ErrorResponse(error.message);
         }

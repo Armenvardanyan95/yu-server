@@ -8,6 +8,14 @@ enum OrderTypes {
     Creation = 'Creation',
 }
 
+export enum OrderStatus {
+    Pending = 'Pending',
+    Review = 'Review',
+    Approved = 'Approved',
+    Developed = 'Developed',
+    Ready = 'Ready',
+}
+
 @Entity()
 export class Order {
 
@@ -22,6 +30,9 @@ export class Order {
 
     @Column('enum', {enum: OrderTypes})
     type: OrderTypes;
+
+    @Column('enum', {enum: OrderStatus})
+    status: OrderStatus = OrderStatus.Pending;
 
     @Column({nullable: true})
     filePath: string = null;

@@ -1,6 +1,7 @@
 import { HttpException, Injectable, PipeTransform, HttpStatus } from '@nestjs/common';
 
 import { Schema } from './schemas';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class ValidationPipe implements PipeTransform {
@@ -17,5 +18,16 @@ export class ValidationPipe implements PipeTransform {
         } else {
             return value;
         }
+    }
+}
+
+@Injectable()
+export class WsTransformPipe implements PipeTransform {
+
+    constructor(private readonly jwtService: JwtService) {}
+
+    transform({data, token}: {data: any, token: string}) {
+        const user = this.jwtService.decode(token, {});
+        return {data, user};
     }
 }

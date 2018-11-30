@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, OneToMany } from 
 import * as bcrypt from 'bcrypt';
 
 import { Order } from './order.entity';
+import { Notification } from './notification.entity';
 
 @Entity()
 export class User {
@@ -20,11 +21,26 @@ export class User {
     @Column({unique: true})
     email: string;
 
+    @Column({nullable: true})
+    bio: string;
+
     @Column()
     isAdmin: boolean = false;
 
+    @Column({nullable: true})
+    phoneNumber: string;
+
+    @Column({nullable: true})
+    profilePic: string = '';
+
+    @Column()
+    isVerified: boolean = false;
+
     @OneToMany(type => Order, order => order.owner)
     orders: Order[];
+
+    @OneToMany(type => Notification, notification => notification.owner)
+    notifications: Notification[];
 
     @BeforeInsert()
     encrypt(): void {

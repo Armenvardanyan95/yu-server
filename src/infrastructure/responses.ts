@@ -16,7 +16,7 @@ export class ErrorResponse<T> extends Response<T> {
 
 export class SuccessResponse<T> extends Response<T> {
 
-    constructor(d: T) {
+    constructor(d: T = null) {
         super();
         this.data = d;
         this.success = true;

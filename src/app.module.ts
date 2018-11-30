@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AppController } from './app.controller';
 import { UserModule } from './user/user/user.module';
 import { OrderModule } from './order/order.module';
+import { CommonModule } from '../src/common/common.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -18,6 +21,8 @@ import { OrderModule } from './order/order.module';
       }),
       UserModule,
       OrderModule,
+      NotificationsModule,
+      CommonModule,
   ],
   controllers: [AppController],
 })
