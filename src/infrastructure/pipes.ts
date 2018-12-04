@@ -28,6 +28,7 @@ export class WsTransformPipe implements PipeTransform {
 
     transform({data, token}: {data: any, token: string}) {
         const user = this.jwtService.decode(token, {});
+        console.log('mtav', data);
         return {data, user};
     }
 }

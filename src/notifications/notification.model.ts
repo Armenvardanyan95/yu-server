@@ -9,6 +9,7 @@ export class NotificationModel {
         public content: string,
         public type: NotificationType,
         public owner: User,
+        public order: Order,
         image?: string,
     ) {}
 
@@ -16,20 +17,20 @@ export class NotificationModel {
         title: string,
         content: string,
         type: NotificationType,
-        owner: User,
+        order: Order,
         image: string = null,
     ): NotificationModel {
-        return new NotificationModel(title, content, type, owner, image);
+        return new NotificationModel(title, content, type, order.owner, order, image);
     }
 
     static createOrderUnderReviewNotification(order: Order): NotificationModel {
         return NotificationModel.create('GOT_ORDER_UNDER_REVIEW', order.title,
-            NotificationType.OrderUnderReview, order.owner);
+            NotificationType.OrderUnderReview, order);
     }
 
     static createOrderApprovedNotification(order: Order): NotificationModel {
         return NotificationModel.create('GOT_ORDER_APPROVED', order.title,
-            NotificationType.OrderApproved, order.owner);
+            NotificationType.OrderApproved, order);
     }
 
     static fromType(type: NotificationType, order): NotificationModel {

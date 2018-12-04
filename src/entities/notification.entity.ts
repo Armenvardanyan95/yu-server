@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 
 import { User } from './user.entity';
+import { Order } from './order.entity';
 
 export enum NotificationType {
     OrderUnderReview = 'OrderUnderReview',
@@ -29,6 +30,9 @@ export class Notification {
 
     @ManyToOne(type => User)
     owner: User;
+
+    @ManyToOne(type => Order)
+    order: Order;
 
     @Column('enum', {enum: NotificationType})
     type: NotificationType;

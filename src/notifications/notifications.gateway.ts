@@ -32,4 +32,26 @@ export class NotificationsGateway {
             return null;
         }
     }
+
+    @SubscribeMessage('deleteNotification')
+    async deleteNotification(client, {user, data}: {user: IUser, data: {id: number}}) {
+        try {
+            await this.notificationsService.delete(data.id);
+            const notifications = await this.notificationsService.getNotificationsByUserID(user.id);
+            return {event: 'onNotifications', data: notifications};
+        } catch (error) {
+            return null;
+        }
+    }
+
+    @SubscribeMessage('markAsRead')
+    async markAsRead(client, {user, data}: {user: IUser, data: {id: number}}) {
+        try {
+            await this.notificationsService.markAsRead(data.id);
+            const notifications = await this.notificationsService.getNotificationsByUserID(user.id);
+            return {event: 'onNotifications', data: notifications};
+        } catch (error) {
+            return null;
+        }
+    }
 }

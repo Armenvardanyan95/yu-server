@@ -11,11 +11,21 @@ export class NotificationsService {
     constructor(@InjectRepository(Notification) private readonly notificationsRepository: Repository<Notification>) {}
 
     async getNotificationsByUserID(id: number) {
-        return await this.notificationsRepository.find({where: {owner: {id}}});
+        return await this.notificationsRepository.find({where: {owner: {id}}, relations: ['order']});
     }
 
     async create(notificationData) {
         const notification = this.notificationsRepository.create(notificationData);
+        return await this.notificationsRepository.save(notification);
+    }
+
+    async delete(id) {
+        await this.notificationsRepository.delete({id});
+    }
+
+    async markAsRead(id) {
+        const notification = await this.notificationsRepository.findOneOrFail({where: {id}});
+        notification.isRead = true;
         return await this.notificationsRepository.save(notification);
     }
 
