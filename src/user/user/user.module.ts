@@ -33,7 +33,7 @@ import { JwtStrategy } from '../../infrastructure/jwt.strategy';
         }),
         CommonModule,
     ],
-    exports: [PassportModule, JwtModule],
+    exports: [PassportModule, JwtModule, UserService],
     providers: [UserService, AuthService, JwtStrategy],
     controllers: [UserController],
 })

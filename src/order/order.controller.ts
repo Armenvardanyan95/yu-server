@@ -15,7 +15,6 @@ import { ErrorResponse, SuccessResponse } from '../infrastructure/responses';
 import { Order, OrderStatus } from '../entities/order.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationModel } from '../notifications/notification.model';
-import { Notification, NotificationType } from '../entities/notification.entity';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 
 @Controller('order')

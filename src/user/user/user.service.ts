@@ -75,4 +75,10 @@ export class UserService {
         user.isVerified = true;
         return await this.userRepository.save(user);
     }
+
+    async setOnlineStatus(status: boolean, id: number) {
+        const user = await this.userRepository.findOneOrFail({where: {id}});
+        user.isOnline = status;
+        return await this.userRepository.save(user);
+    }
 }

@@ -36,6 +36,9 @@ export class User {
     @Column()
     isVerified: boolean = false;
 
+    @Column({nullable: true})
+    isOnline: boolean = false;
+
     @OneToMany(type => Order, order => order.owner)
     orders: Order[];
 

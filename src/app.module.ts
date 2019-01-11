@@ -6,6 +6,7 @@ import { UserModule } from './user/user/user.module';
 import { OrderModule } from './order/order.module';
 import { CommonModule } from '../src/common/common.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { MessagesModule } from './messages/messages.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { NotificationsModule } from './notifications/notifications.module';
       UserModule,
       OrderModule,
       NotificationsModule,
+      MessagesModule,
       CommonModule,
   ],
   controllers: [AppController],
