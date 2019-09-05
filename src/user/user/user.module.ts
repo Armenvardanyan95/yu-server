@@ -11,6 +11,7 @@ import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from '../../infrastructure/jwt.strategy';
+import { FileModel } from 'src/infrastructure/models';
 
 @Module({
     imports: [
@@ -25,7 +26,7 @@ import { JwtStrategy } from '../../infrastructure/jwt.strategy';
         MulterModule.register({
             storage: diskStorage({
                 destination: join(__dirname, '../../../public'),
-                filename(req, file, cb) {
+                filename(_: unknown, file: FileModel, cb: (_: null, name: string) => void) {
                     const randomName = Array(32).fill(null).map(() => (Math.ceil(Math.random() * 16)).toString(16)).join('');
                     cb(null, `${randomName}${extname(file.originalname)}`);
                 },

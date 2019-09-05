@@ -7,7 +7,7 @@ import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
 import { OrderService } from './order.service';
 import { User } from '../entities/user.entity';
-import { IOrder } from '../infrastructure/interfaces';
+import { IOrder } from '../infrastructure/dto';
 import { Schema, Validations } from '../infrastructure/schemas';
 import { CurrentUser } from '../infrastructure/decorators';
 import { ValidationPipe } from '../infrastructure/pipes';

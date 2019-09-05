@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { User } from '../../entities/user.entity';
-import { IUser } from '../../infrastructure/interfaces';
+import { UserModelDto } from '../../infrastructure/dto';
 
 @Injectable()
 export class UserService {
@@ -33,12 +33,12 @@ export class UserService {
         return matchingUsers.length !== 0;
     }
 
-    async createUser(userData: IUser): Promise<User> {
+    async createUser(userData: UserModelDto): Promise<User> {
         const createdUser = this.userRepository.create(userData);
         return await this.userRepository.save(createdUser);
     }
 
-    async updateUser(userData: IUser = {} as IUser, userID): Promise<User> {
+    async updateUser(userData: Partial<UserModelDto> = {} as Partial<UserModelDto>, userID: number): Promise<User> {
         const user: User = await this.findByID(userID);
         user.lastName = userData.lastName || user.lastName;
         user.firstName = userData.firstName || user.firstName;
@@ -47,7 +47,7 @@ export class UserService {
         return await this.userRepository.save(user);
     }
 
-    async updatePassword(currentPassword, newPassword, userID) {
+    async updatePassword(currentPassword: string, newPassword: string, userID: number) {
         try {
             const user = await this.userRepository.findOneOrFail({where: {id: userID}});
             if (!bcrypt.compareSync(currentPassword, user.password)) {
@@ -70,7 +70,7 @@ export class UserService {
         return await this.userRepository.save(user);
     }
 
-    async verify(id) {
+    async verify(id: number) {
         const user = await this.userRepository.findOneOrFail({where: {id}});
         user.isVerified = true;
         return await this.userRepository.save(user);

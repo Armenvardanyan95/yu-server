@@ -1,14 +1,15 @@
 import {
     Controller, Post, Body, Get, Param, UseGuards, UsePipes, Delete, FileInterceptor, UploadedFile,
-    UseInterceptors, Res, Response,
+    UseInterceptors, Res,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import * as bcrypt from 'bcrypt';
-import { join } from 'path';
+import { Response } from 'express';
 
 import { UserService } from './user.service';
-import { ISignInOptions, IUser } from '../../infrastructure/interfaces';
+import { SignInOptionsDto, UserModelDto, UserVerifyDto, ForgotPasswordDto, UpdatePasswordDto } from '../../infrastructure/dto';
 import { ErrorResponse, SuccessResponse } from '../../infrastructure/responses';
 import { Schema, Validations } from '../../infrastructure/schemas';
 import { ValidationPipe } from '../../infrastructure/pipes';
@@ -16,6 +17,7 @@ import { User } from '../../entities/user.entity';
 import { AdminGuard } from '../../infrastructure/guards';
 import { CurrentUser } from '../../infrastructure/decorators';
 import { EmailService } from '../../common/services/email.service';
+import { PayloadModel, FileModel } from 'src/infrastructure/models';
 
 @Controller('user')
 export class UserController {
@@ -41,7 +43,7 @@ export class UserController {
 
     @Post()
     @UsePipes(new ValidationPipe(UserController.signUpSchema))
-    async createUser(@Body() userData: IUser) {
+    async createUser(@Body() userData: UserModelDto) {
         if (userData.password !== userData.confirmPassword) {
             return new ErrorResponse('Passwords do not match');
         } else if (await this.userService.isExistingUser(userData.email)) {
@@ -59,8 +61,9 @@ export class UserController {
     }
 
     @Post('/edit')
+    @ApiBearerAuth()
     @UseGuards(AuthGuard())
-    async updateUser(@Body() userData: IUser, @CurrentUser() user) {
+    async updateUser(@Body() userData: Partial<UserModelDto>, @CurrentUser() user: User) {
         try {
             const updatedUser: User = await this.userService.updateUser(userData, user.id);
             return new SuccessResponse(updatedUser);
@@ -70,9 +73,10 @@ export class UserController {
     }
 
     @Post('/verify')
-    async verifyUser(@Body() {token}: {token: string}) {
-        const payload = this.jwtService.decode(token, {complete: true, json: true});
-        const id = payload['payload']['id'];
+    async verifyUser(@Body() {token}: UserVerifyDto) {
+        const {payload}: {payload: PayloadModel} = this.jwtService
+                .decode(token, {complete: true, json: true}) as {payload: PayloadModel};
+        const id = payload.id;
         try {
             await this.userService.verify(id);
             return new SuccessResponse();
@@ -82,6 +86,7 @@ export class UserController {
     }
 
     @Get()
+    @ApiBearerAuth()
     @UseGuards(AuthGuard(), AdminGuard)
     async getUsers() {
         try {
@@ -93,6 +98,7 @@ export class UserController {
     }
 
     @Delete(':id')
+    @ApiBearerAuth()
     @UseGuards(AuthGuard(), AdminGuard)
     async deleteUser(@Param('id') id: number) {
         try {
@@ -104,6 +110,7 @@ export class UserController {
     }
 
     @Get('self')
+    @ApiBearerAuth()
     @UseGuards(AuthGuard())
     getSelf(@CurrentUser() myself: User) {
         return new SuccessResponse(myself);
@@ -121,7 +128,7 @@ export class UserController {
 
     @Post('signin')
     @UsePipes(new ValidationPipe(UserController.signInSchema))
-    async signin(@Body() {email, password}: ISignInOptions) {
+    async signin(@Body() {email, password}: SignInOptionsDto) {
         try {
             const user: User = await this.userService.findOneByEmail(email);
             if (bcrypt.compareSync(password, user.password) && user.isVerified) {
@@ -143,7 +150,7 @@ export class UserController {
     }
 
     @Post('forgot-password')
-    async forgotPassword(@Body() {email}: {email: string}) {
+    async forgotPassword(@Body() {email}: ForgotPasswordDto) {
         try {
             const user: User = await this.userService.findOneByEmail(email);
             const token = this.jwtService.sign({id: user.id, date: new Date()});
@@ -155,20 +162,22 @@ export class UserController {
     }
 
     @Post('update-password')
+    @ApiBearerAuth()
     @UseGuards(AuthGuard())
-    async changePassword(@Body() passwords, @CurrentUser() user) {
+    async changePassword(@Body() passwords: UpdatePasswordDto, @CurrentUser() user: User) {
         try {
             await this.userService.updatePassword(passwords.currentPassword, passwords.newPassword, user.id);
-            return new SuccessResponse(null);
+            return new SuccessResponse();
         } catch (error) {
             return new ErrorResponse(error.message);
         }
     }
 
     @Post('update-profile-pic')
+    @ApiBearerAuth()
     @UseGuards(AuthGuard())
     @UseInterceptors(FileInterceptor('file'))
-    async updateProfilePic(@CurrentUser() user, @UploadedFile() file) {
+    async updateProfilePic(@CurrentUser() user: User, @UploadedFile() file: FileModel) {
         try {
             const updatedUser = await this.userService.updateProfilePic(file.filename, user);
             return new SuccessResponse(updatedUser);
@@ -178,7 +187,7 @@ export class UserController {
     }
 
     @Get('profile-pic/:imgName')
-    async getProfilePic(@Param('imgName') imgName, @Res() res) {
+    async getProfilePic(@Param('imgName') imgName: string, @Res() res: Response) {
         res.sendFile(imgName, {root: 'public'});
     }
 }

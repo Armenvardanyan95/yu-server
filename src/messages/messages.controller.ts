@@ -1,6 +1,6 @@
 import {
     Body, Controller, Get, Post, UseGuards, Query, Param, UsePipes, UseInterceptors,
-    FileInterceptor, UploadedFile, Res
+    FileInterceptor, UploadedFile, Res,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../infrastructure/decorators';
@@ -9,6 +9,7 @@ import { MessagesService } from './messages.service';
 import { MessageModel } from './message.model';
 import { MessagesGateway } from './messages.gateway';
 import { User } from '../entities/user.entity';
+import { FileModel } from 'src/infrastructure/models';
 
 @Controller('messages')
 export class MessagesController {
@@ -51,7 +52,7 @@ export class MessagesController {
 
     @Post()
     @UseGuards(AuthGuard())
-    async addMessage(@Body() message, @CurrentUser() user) {
+    async addMessage(@Body() message, @CurrentUser() user: User) {
         const msg = new MessageModel(message.chat, message.content, user);
         try {
             const createdMessage = await this.messagesService.addMessage(msg);
@@ -64,7 +65,7 @@ export class MessagesController {
 
     @Get('mark-as-read/:id')
     @UseGuards(AuthGuard())
-    async markAsRead(@Param('id') id) {
+    async markAsRead(@Param('id') id: number) {
         try {
             const message = await this.messagesService.markAsRead(id);
             this.messagesGateway.markAsRead(message);
@@ -77,7 +78,7 @@ export class MessagesController {
     @Post('/attachment')
     @UseGuards(AuthGuard())
     @UseInterceptors(FileInterceptor('file'))
-    async addAttachment(@Body() message, @CurrentUser() user: User, @UploadedFile() file) {
+    async addAttachment(@Body() message, @CurrentUser() user: User, @UploadedFile() file: FileModel) {
         try {
             const attachment = await this.messagesService.addMessage(new MessageModel(message.chat, '', user, file.filename));
             this.messagesGateway.addMessage(attachment as any);

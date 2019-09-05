@@ -3,7 +3,7 @@ import { WebSocketGateway, SubscribeMessage, WebSocketServer } from '@nestjs/web
 
 import { WsTransformPipe } from '../infrastructure/pipes';
 import { WsAuthGuard as AuthGuard } from '../infrastructure/guards';
-import { IUser } from '../infrastructure/interfaces';
+import { UserModelDto } from '../infrastructure/dto';
 import { NotificationsService } from './notifications.service';
 
 @WebSocketGateway()
@@ -20,7 +20,7 @@ export class NotificationsGateway {
     }
 
     @SubscribeMessage('getNotifications')
-    async getNotifications(client, {user}: {user: IUser}) {
+    async getNotifications(client, {user}: {user: UserModelDto}) {
         try {
             client.join('notifications_' + user.id);
             const notifications = await this.notificationsService.getNotificationsByUserID(user.id);
@@ -31,7 +31,7 @@ export class NotificationsGateway {
     }
 
     @SubscribeMessage('deleteNotification')
-    async deleteNotification(client, {user, data}: {user: IUser, data: {id: number}}) {
+    async deleteNotification(client, {user, data}: {user: UserModelDto, data: {id: number}}) {
         try {
             await this.notificationsService.delete(data.id);
             const notifications = await this.notificationsService.getNotificationsByUserID(user.id);
@@ -42,7 +42,7 @@ export class NotificationsGateway {
     }
 
     @SubscribeMessage('markAsRead')
-    async markAsRead(client, {user, data}: {user: IUser, data: {id: number}}) {
+    async markAsRead(client, {user, data}: {user: UserModelDto, data: {id: number}}) {
         try {
             await this.notificationsService.markAsRead(data.id);
             const notifications = await this.notificationsService.getNotificationsByUserID(user.id);

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 
 import { Order, OrderStatus } from '../entities/order.entity';
 import { User } from '../entities/user.entity';
-import { IOrder } from '../infrastructure/interfaces';
+import { IOrder } from '../infrastructure/dto';
 
 @Injectable()
 export class OrderService {
